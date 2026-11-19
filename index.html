@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>StegoLab · 隐写取证工作台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A0F1C'/%3E%3Ctext x='16' y='23' font-size='19' font-family='monospace' font-weight='bold' text-anchor='middle' fill='%2322D3EE'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="grid-overlay"></div>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">S</div>
+    <div><div class="brand-name">STEGO<span>LAB</span></div><div class="brand-sub">IMAGE FORENSICS · LOCAL ONLY</div></div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">等待载入载体</span></div>
+    <button class="btn btn-ghost btn-sm" id="btn-reset" type="button">重置</button>
+  </div>
+</header>
+<main class="shell">
+  <section class="hero-grid">
+    <div class="upload-card glass" id="dropzone">
+      <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/bmp,image/gif" hidden>
+      <div class="upload-empty" id="upload-empty">
+        <div class="upload-icon">◈</div>
+        <h2>投放一张图片，开始取证</h2>
+        <p>PNG / JPG / WebP · 拖拽到此处，或 <span class="link">选择文件</span></p>
+        <div class="upload-hints"><span>容器解析</span><span>统计检测</span><span>清除</span><span>嵌入 / 提取</span></div>
+      </div>
+      <div class="upload-loaded" id="upload-loaded" hidden>
+        <div class="preview-frame"><img id="preview-original" alt="载体预览"><div class="preview-scanline"></div><div class="preview-tag" id="preview-tag">CARRIER</div></div>
+        <div class="loaded-info">
+          <div class="file-line"><strong id="file-name">—</strong><button class="icon-btn" id="btn-change-file" type="button" title="更换图片">⇧</button></div>
+          <div class="meta-grid" id="image-meta"></div>
+          <div class="ref-row">
+            <input type="file" id="ref-input" accept="image/png,image/jpeg,image/webp" hidden>
+            <button class="btn btn-ghost btn-sm" id="btn-ref" type="button">+ 添加干净参考图（可选）</button>
+            <span class="ref-state" id="ref-state">未提供 · χ²/RS/SPA/PVD 仅作参考</span>
+          </div>
+        </div>
+      </div>
+      <div class="drop-overlay"><div>释放以载入图片</div></div>
+    </div>
+    <aside class="brief-card glass">
+      <div class="brief-head"><span class="eyebrow">MISSION BRIEF</span><span class="live-badge"><span></span>LOCAL</span></div>
+      <h3>四步完成一次隐写取证</h3>
+      <ol class="brief-steps">
+        <li><span>01</span><div><b>体检</b><small>容器、帧、统计、频域梳齿</small></div></li>
+        <li><span>02</span><div><b>清除</b><small>从轻度净化到定向攻击</small></div></li>
+        <li><span>03</span><div><b>藏入</b><small>无损嵌入，强制回读自检</small></div></li>
+        <li><span>04</span><div><b>提取</b><small>自动识别或手动指定参数</small></div></li>
+      </ol>
+      <div class="brief-foot">▣ 所有计算在本机浏览器内完成，图片不会上传。</div>
+    </aside>
+  </section>
+
+  <nav class="workspace-tabs" id="tabs" aria-label="工作区">
+    <button class="tab active" data-tab="detect" type="button"><span class="tab-ico">⌗</span><span>检测</span><small>DETECT</small></button>
+    <button class="tab" data-tab="clean" type="button"><span class="tab-ico">⌫</span><span>去隐写</span><small>CLEAN</small></button>
+    <button class="tab" data-tab="embed" type="button"><span class="tab-ico">⇩</span><span>隐写</span><small>EMBED</small></button>
+    <button class="tab" data-tab="extract" type="button"><span class="tab-ico">⇧</span><span>提取</span><small>EXTRACT</small></button>
+    <div class="tab-glow" id="tab-glow"></div>
+  </nav>
+
+  <section class="panel active" id="panel-detect">
+    <div class="panel-head">
+      <div><span class="eyebrow">01 / TRIAGE</span><h1>可疑隐写信号体检</h1><p>容器层 → 已知载荷帧 → 空域统计 → 频域关系指纹。所有结论表述为“当前工具检出”。</p></div>
+      <div class="panel-actions"><button class="btn btn-ghost btn-sm" id="btn-export-report" type="button">导出 JSON</button><button class="btn btn-primary" id="btn-analyze" type="button">重新检测</button></div>
+    </div>
+    <div id="detect-verdict" class="verdict-empty glass"><div class="verdict-orb">⌗</div><div><h3>等待载体</h3><p>载入图片后自动执行一次全量筛查。</p></div></div>
+    <div class="detect-layout">
+      <div class="findings-column"><div class="section-label"><span>FINDINGS</span><small id="findings-count">0 项</small></div><div id="detect-findings" class="findings-list"></div></div>
+      <aside class="side-column">
+        <div class="glass side-card"><div class="side-card-head"><h3>容量评估</h3><span class="chip">CAPACITY</span></div><div id="detect-capacity" class="capacity-table"><p class="muted">载入图片后计算。</p></div></div>
+        <div class="glass side-card"><div class="side-card-head"><h3>判读原则</h3><span class="chip">NOTES</span></div><ul class="note-list"><li>容器/帧命中是高置信证据；统计量受内容影响。</li><li>χ²/RS/SPA/PVD 需要独立干净参考图才能标定。</li><li>“未检出”不等于绝对无隐写。</li></ul></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-clean">
+    <div class="panel-head"><div><span class="eyebrow">02 / SANITIZE</span><h1>去隐写与破坏性重编码</h1><p>按强度分组；每项显示画质代价与像素变化率。所有结果输出为 PNG。</p></div></div>
+    <div class="clean-layout">
+      <div class="method-rail" id="clean-groups"></div>
+      <div class="clean-work">
+        <div class="glass clean-config">
+          <div class="config-head"><div><span class="chip" id="clean-group-chip">轻度</span><h2 id="clean-title">选择一种清除手段</h2></div><span class="method-id" id="clean-method-id">—</span></div>
+          <p class="muted" id="clean-desc">从左侧选择方法后执行。</p>
+          <div id="clean-params" class="param-grid"></div>
+          <div class="config-actions"><button class="btn btn-primary" id="clean-run" type="button" disabled>执行清除</button><span class="hint" id="clean-hint">结果仅在本机生成</span></div>
+        </div>
+        <div id="clean-result" class="clean-result glass empty-result"><div class="empty-result-icon">✦</div><p>执行后显示前后对比与画质指标。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-embed">
+    <div class="panel-head"><div><span class="eyebrow">03 / INJECT</span><h1>把信息藏进图片</h1><p>LSB / 文件尾 / tEXt 为严格无损组；DCT 与 QIM 为实验鲁棒组，不承诺处理后仍可提取。</p></div></div>
+    <div class="embed-layout">
+      <div class="method-rail" id="embed-methods"></div>
+      <div class="embed-work">
+        <div class="glass clean-config">
+          <div class="config-head"><div><span class="chip" id="embed-group-chip">无损</span><h2 id="embed-title">选择一种隐写方法</h2></div><span class="method-id" id="embed-method-id">—</span></div>
+          <p class="muted" id="embed-desc">从左侧选择方法后填写载荷。</p>
+          <div id="embed-params" class="param-grid"></div>
+          <div class="payload-box">
+            <div class="payload-tabs"><button class="ptab active" data-payload="text" type="button">文本</button><button class="ptab" data-payload="file" type="button">任意文件</button></div>
+            <textarea id="payload-text" placeholder="输入要隐藏的文本…" spellcheck="false"></textarea>
+            <div class="file-drop" id="payload-file-drop" hidden><input type="file" id="payload-file" hidden><span id="payload-file-name">点击选择文件</span></div>
+            <div class="capacity-line"><div class="capacity-track"><i id="embed-capacity-bar"></i></div><span id="embed-capacity-text">容量 —</span></div>
+          </div>
+          <div class="config-actions"><button class="btn btn-primary" id="embed-run" type="button" disabled>执行嵌入并回读自检</button><span class="hint" id="embed-hint">嵌入后自动逐字节比对</span></div>
+        </div>
+        <div id="embed-result" class="embed-result glass empty-result"><div class="empty-result-icon">⇩</div><p>生成结果、自检结论与下载入口会出现在这里。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-extract">
+    <div class="panel-head"><div><span class="eyebrow">04 / EXTRACT</span><h1>提取隐藏信息</h1><p>自动依次尝试文件尾、tEXt、LSB 八种组合与鲁棒引导头；也可手动指定参数。</p></div></div>
+    <div class="extract-layout">
+      <div class="glass extract-config">
+        <div class="extract-actions"><button class="btn btn-primary" id="extract-auto" type="button">自动提取</button><label class="switch"><input type="checkbox" id="extract-robust" checked><span></span>同时尝试鲁棒引导头</label></div>
+        <details class="manual-details"><summary>手动指定方法 / 参数</summary>
+          <div class="manual-grid">
+            <label>方法<select id="extract-method"><option value="lsb">LSB</option><option value="append">文件尾附加</option><option value="text">PNG tEXt</option><option value="lsbm">LSBM</option><option value="pvd">PVD</option><option value="dct_ss">DCT 扩频</option><option value="dct_qim">DCT-QIM</option><option value="dct_rel">DCT 关系法</option><option value="dwt_qim">DWT-QIM</option><option value="blk_qim">块均值 QIM</option></select></label>
+            <label>key<input id="extract-key" type="number" value="42"></label>
+            <label>bits<select id="extract-bits"><option>1</option><option>2</option></select></label>
+            <label>通道<select id="extract-channels"><option>RGB</option><option>RGBA</option></select></label>
+            <label>nbits<input id="extract-nbits" type="number" placeholder="鲁棒方法必填"></label>
+            <label class="check"><input id="extract-opaque" type="checkbox"> 仅不透明像素</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="extract-manual" type="button">按参数提取</button>
+        </details>
+      </div>
+      <div id="extract-result" class="extract-result glass empty-result"><div class="empty-result-icon">⇧</div><p>提取结果、帧信息与载荷下载会出现在这里。</p></div>
+    </div>
+  </section>
+
+  <footer class="footer"><span>StegoLab · 教学级隐写取证演示</span><span>结论口径：当前工具检出 / 未检出，不代表绝对存在或不存在。</span></footer>
+</main>
+<div id="toast-root" class="toast-root"></div>
+<div id="progress-overlay" class="progress-overlay" hidden><div class="progress-card"><div class="spinner"></div><div><b id="progress-title">处理中</b><span id="progress-sub">请稍候…</span></div></div></div>
+
+<script src="js/core/crc32.js"></script>
+<script src="js/core/bytes.js"></script>
+<script src="js/core/prng.js"></script>
+<script src="js/core/png.js"></script>
+<script src="js/core/frame.js"></script>
+<script src="js/core/dct.js"></script>
+<script src="js/core/lsb.js"></script>
+<script src="js/core/image.js"></script>
+<script src="js/core/metrics.js"></script>
+<script src="js/stego/lsb.js"></script>
+<script src="js/stego/append.js"></script>
+<script src="js/stego/text.js"></script>
+<script src="js/stego/lsbm.js"></script>
+<script src="js/stego/pvd.js"></script>
+<script src="js/stego/strong.js"></script>
+<script src="js/stego/robust.js"></script>
+<script src="js/analysis/container.js"></script>
+<script src="js/analysis/frame-probe.js"></script>
+<script src="js/analysis/lsb-stats.js"></script>
+<script src="js/analysis/comb.js"></script>
+<script src="js/analysis/residual.js"></script>
+<script src="js/analysis/scan.js"></script>
+<script src="js/clean/basic.js"></script>
+<script src="js/clean/enhanced.js"></script>
+<script src="js/clean/targeted.js"></script>
+<script src="js/pipeline.js"></script>
+<script src="js/ui/components.js"></script>
+<script src="js/ui/app.js"></script>
+<script src="js/ui/detect-panel.js"></script>
+<script src="js/ui/clean-panel.js"></script>
+<script src="js/ui/embed-panel.js"></script>
+<script src="js/ui/extract-panel.js"></script>
+</body>
+</html>
