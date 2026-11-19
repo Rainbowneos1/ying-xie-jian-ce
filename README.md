@@ -5,6 +5,7 @@
 - 运行入口：`index.html`
 - 自测入口：`tests/test.html`（算法层）、`tests/ui-smoke.html`（四工作区 UI 链路）
 - 无服务器、无 CDN、无第三方库；全部脚本以传统 `<script src>` 顺序加载并挂在 `window.StegoLab`
+- **扁平化布局**：所有 CSS/JS 依赖与 `index.html` 放在同一目录；`tests/` 仅用于回归页
 
 ## 运行方式
 
@@ -81,19 +82,22 @@
 ```text
 stego_web/
 ├── index.html              单页骨架：品牌栏 / 上传区 / 四工作区 / 结果区
+├── style.css               全部样式（与 index.html 同目录）
 ├── README.md
-├── css/style.css           暗色取证实验室主题
-├── js/
-│   ├── core/               crc32 / bytes / png / frame / lsb / image / dct / prng / metrics
-│   ├── analysis/           container / frame-probe / lsb-stats / comb / residual / scan
-│   ├── stego/              lsb / append / text / lsbm / pvd / strong / robust
-│   ├── clean/              basic / enhanced / targeted
-│   ├── pipeline.js         analyze / clean / embed / extract 编排与自检
-│   └── ui/                 app / detect-panel / clean-panel / embed-panel / extract-panel / components
+│
+│  ↓ 以下 32 个 JS 全部与 index.html 同目录，按原加载顺序引用
+├── crc32.js  bytes.js  prng.js  png.js  frame.js  dct.js  core-lsb.js  image.js  metrics.js   （core）
+├── stego-lsb.js  append.js  text.js  lsbm.js  pvd.js  strong.js  robust.js                    （stego）
+├── container.js  frame-probe.js  lsb-stats.js  comb.js  residual.js  scan.js                   （analysis）
+├── basic.js  enhanced.js  targeted.js                                                         （clean）
+├── pipeline.js             analyze / clean / embed / extract 编排与自检
+├── components.js  app.js  detect-panel.js  clean-panel.js  embed-panel.js  extract-panel.js    （ui）
 └── tests/
     ├── test.html           算法层 19 项断言（逐字节往返、分片重组、检测口径）
     └── ui-smoke.html       四工作区 12 项 UI 链路（iframe 驱动真实 DOM）
 ```
+
+两个原名为 `lsb.js` 的模块分别改名为 `core-lsb.js`（位读写核心）与 `stego-lsb.js`（隐写方法），避免扁平化后同名覆盖。
 
 ## 自测
 
