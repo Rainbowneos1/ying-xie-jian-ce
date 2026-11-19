@@ -94,7 +94,7 @@ stego_web/
 ├── components.js  app.js  detect-panel.js  clean-panel.js  embed-panel.js  extract-panel.js    （ui）
 └── tests/
     ├── test.html           算法层 19 项断言（逐字节往返、分片重组、检测口径）
-    └── ui-smoke.html       四工作区 12 项 UI 链路（iframe 驱动真实 DOM）
+    └── ui-smoke.html       四工作区 13 项 UI 链路（iframe 驱动真实 DOM）
 ```
 
 两个原名为 `lsb.js` 的模块分别改名为 `core-lsb.js`（位读写核心）与 `stego-lsb.js`（隐写方法），避免扁平化后同名覆盖。
@@ -103,11 +103,11 @@ stego_web/
 
 ```text
 tests/test.html      期望标题 PASS 19/19
-tests/ui-smoke.html  期望标题 PASS 12/12
+tests/ui-smoke.html  期望标题 PASS 13/13
 ```
 
 `test.html` 覆盖：PNG 精确编解码、CRC/帧解析、LSB 八种参数组合、append、tEXt、三载体分片重组、7 种鲁棒方法未处理回读、检测分级阈值。
-`ui-smoke.html` 覆盖：载入与体检渲染、标准净化 + 指标、处理结果回填为新载体、LSB 单载体/分片嵌入与自检、分片缺口提示与重组下载、文件尾通道回读、干净图“未发现载荷”、鲁棒方法实验徽标、重置、运行期无 `console.error`。
+`ui-smoke.html` 覆盖：载入与体检渲染、标准净化 + 指标、处理结果回填为新载体、LSB 单载体/分片嵌入与自检、分片缺口提示与重组下载、文件尾通道回读、干净图“未发现载荷”、鲁棒方法实验徽标、方法组展开不裁切且列表可滚动、重置、运行期无 `console.error`。
 
 两项均为零依赖页面，可直接双击打开，也可在无头浏览器中读取 `document.title` 做回归。若用 `playwright-cli` 且本机未装 Playwright 自带 Chromium，可加 `--browser=msedge` 复用系统 Edge。
 
